@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>STT Tapper</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background: linear-gradient(145deg, #1c1449, #311c72);
+      color: #ffffff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+      text-align: center;
+    }
+    .container {
+      padding: 20px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+      width: 90%;
+      max-width: 400px;
+    }
+    #connectButton {
+      background: #ffffff15;
+      color: white;
+      border: 1px solid #ffffff50;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+    #walletAddress {
+      font-size: 14px;
+      opacity: 0.8;
+      margin-bottom: 10px;
+    }
+    #timer {
+      font-size: 48px;
+      margin-bottom: 20px;
+      background: #ffffff10;
+      padding: 10px 30px;
+      border-radius: 40px;
+      border: 1px solid #ffffff20;
+    }
+    #coin-img {
+      width: 160px;
+      transition: transform 0.2s ease;
+    }
+    #tapButton {
+      margin-top: 20px;
+      background: #ffd700;
+      border: none;
+      border-radius: 100px;
+      width: 160px;
+      height: 160px;
+      font-size: 28px;
+      color: #1c1449;
+      font-weight: bold;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+    #tapButton:active {
+      transform: scale(0.95);
+    }
+    #result {
+      margin-top: 30px;
+      font-size: 22px;
+    }
+    .footer {
+      margin-top: 30px;
+      font-size: 14px;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <button id="connectButton">Connect Wallet</button>
+    <div id="walletAddress"></div>
+
+    <div id="timer">0:30</div>
+    <img id="coin-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Gold_coin_icon.png/600px-Gold_coin_icon.png" alt="STT Coin" />
+    <h2 style="margin-top: 20px;">Earn STT</h2>
+    <p>Tap the button as fast as you can!</p>
+    <button id="tapButton">TAP!</button>
+    <div id="result"></div>
+    <div class="footer">STT Test Game © 2025</div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script>
+    let provider, signer, contract, userWalletAddress;
+    const contractAddress = '0xc26c366eecb168d3e292d7f610332cff8299396b';
+    const contractABI = [
+      "function startGame() external",
+      "function submitTaps(uint256 count) external",
+      "function getTaps(address player) view returns (uint256)"
+    ];
+
+    document.getElementById('connectButton').addEventListener('click', async () => {
+      if (window.ethereum) {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        signer = provider.getSigner();
+        userWalletAddress = await signer.getAddress();
+        contract = new ethers.Contract(contractAddress, contractABI, signer);
+        document.getElementById('walletAddress').innerText = `Connected: ${userWalletAddress}`;
+        document.getElementById('connectButton').style.display = 'none';
+      } else {
+        alert('Install MetaMask');
+      }
+    });
+
+    // Game logic
+    let timeLeft = 30;
+    let tapCount = 0;
+    let countdown;
+    let gameStarted = false;
+
+    const timerElement = document.getElementById('timer');
+    const resultElement = document.getElementById('result');
+    const tapButton = document.getElementById('tapButton');
+    const coinImg = document.getElementById('coin-img');
+
+    async function startGameTimer() {
+      try {
+        const tx = await contract.startGame();
+        await tx.wait();
+      } catch (e) {
+        alert("startGame() failed: " + e.message);
+        return;
+      }
+
+      countdown = setInterval(() => {
+        timeLeft--;
+        timerElement.innerText = `0:${timeLeft < 10 ? '0' : ''}${timeLeft}`;
+        if (timeLeft <= 0) {
+          clearInterval(countdown);
+          tapButton.disabled = true;
+          submitFinalTaps();
+        }
+      }, 1000);
+    }
+
+    async function submitFinalTaps() {
+      try {
+        const tx = await contract.submitTaps(tapCount);
+        await tx.wait();
+        const finalTaps = await contract.getTaps(userWalletAddress);
+        resultElement.innerText = `You tapped ${finalTaps} times! 👏`;
+        tapButton.innerText = "Done";
+      } catch (e) {
+        resultElement.innerText = "Error submitting taps: " + e.message;
+      }
+    }
+
+    tapButton.addEventListener('click', async () => {
+      if (!gameStarted) {
+        gameStarted = true;
+        await startGameTimer();
+      }
+
+      if (timeLeft > 0) {
+        tapCount++;
+        coinImg.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+          coinImg.style.transform = 'scale(1)';
+        }, 100);
+      }
+    });
+  </script>
+</body>
+</html>
