@@ -1,180 +1,356 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>STT Tapper</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TAP GAME BY ONCHAIN NIKA</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <style>
+    * { box-sizing: border-box; }
     body {
-      background: linear-gradient(145deg, #1c1449, #311c72);
-      color: #ffffff;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      font-family: 'Press Start 2P', cursive;
+      background: linear-gradient(#000010, #000022), url('https://i.imgur.com/rLfU54B.png') repeat;
+      color: white;
+      display: grid;
+      grid-template-columns: 1fr 2fr 1fr;
+      grid-template-rows: auto auto 1fr;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    header {
+      grid-column: 1 / 4;
+      text-align: center;
+      font-size: 24px;
+      padding: 30px 10px;
+      background: #111;
+      border-bottom: 4px solid #ffd700;
+      color: #ffd700;
+      text-shadow: 3px 3px black;
+    }
+
+    .slogan {
+  grid-column: 1 / 4;
+  text-align: center;
+  color: #e6f113;
+  font-size: 17px;               
+  margin-top: 37px;              
+  margin-bottom: 40px;           
+  text-shadow: 1px 1px #da0000c2;
+  font-family: 'Press Start 2P', cursive;
+  line-height: 1.6;
+}
+
+    .leaderboard, .game, .mascot {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      overflow: hidden;
-      text-align: center;
-    }
-    .container {
       padding: 20px;
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.05);
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-      width: 90%;
-      max-width: 400px;
     }
-    #connectButton {
-      background: #ffffff15;
-      color: white;
-      border: 1px solid #ffffff50;
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      margin-bottom: 10px;
+
+    .leaderboard, .game {
+      background: rgba(0, 0, 30, 0.7);
+      border: 3px solid #ffd700;
+      border-radius: 25px;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+      width: 280px;
+      margin: auto;
     }
-    #walletAddress {
+
+    .leaderboard h2 {
+      color: yellow;
       font-size: 14px;
-      opacity: 0.8;
-      margin-bottom: 10px;
-    }
-    #timer {
-      font-size: 48px;
       margin-bottom: 20px;
-      background: #ffffff10;
-      padding: 10px 30px;
-      border-radius: 40px;
-      border: 1px solid #ffffff20;
     }
-    #coin-img {
-      width: 160px;
-      transition: transform 0.2s ease;
+
+    #leaderboardList {
+      list-style: none;
+      padding: 0;
     }
-    #tapButton {
-      margin-top: 20px;
-      background: #ffd700;
+
+    #leaderboardList li {
+      margin: 8px 0;
+      font-size: 10px;
+    }
+
+    .game input, .game button {
+      font-family: inherit;
+      font-size: 10px;
+      padding: 12px;
+      margin: 6px 0;
+      border-radius: 12px;
       border: none;
-      border-radius: 100px;
-      width: 160px;
-      height: 160px;
-      font-size: 28px;
-      color: #1c1449;
-      font-weight: bold;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-      cursor: pointer;
-      transition: transform 0.1s ease;
     }
+
+    #playerName {
+      width: 200px;
+    }
+
+    #connectWallet {
+      background-color: #ffd700;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .game .timer {
+      font-size: 24px;
+      background: #111;
+      padding: 10px 30px;
+      border: 2px solid #ffd700;
+      border-radius: 20px;
+      margin: 20px 0;
+    }
+
+    #tapButton {
+      background: yellow;
+      color: black;
+      border: none;
+      border-radius: 50%;
+      width: 120px;
+      height: 120px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      display: none;
+    }
+
     #tapButton:active {
       transform: scale(0.95);
     }
+
     #result {
-      margin-top: 30px;
-      font-size: 22px;
+      margin-top: 15px;
+      font-size: 12px;
+      color: #90ee90;
+      text-align: center;
     }
-    .footer {
-      margin-top: 30px;
-      font-size: 14px;
-      opacity: 0.6;
+
+    .mascot img {
+      width: 200px;
+      max-height: 70vh;
     }
+
+    #walletAddress {
+      font-size: 10px;
+      margin-bottom: 10px;
+      opacity: 0.7;
+    }
+
+    @media(max-width: 768px) {
+      body {
+        display: block;
+      }
+      .leaderboard, .mascot {
+        display: none;
+      }
+      header {
+        font-size: 18px;
+      }
+    }
+    #muteBtn {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  font-size: 20px;
+  background: none;
+  border: none;
+  color: #ffd700;
+  cursor: pointer;
+  z-index: 1000;
+  text-shadow: 1px 1px black;
+}
+#muteBtn:hover {
+  transform: scale(1.2);
+}
+.marquee {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: #000;
+  color: #ffd700;
+  font-size: 10px;
+  font-family: 'Press Start 2P', cursive;
+  overflow: hidden;
+  white-space: nowrap;
+  z-index: 999;
+  padding: 6px 0;
+  border-top: 2px solid #ffd700;
+}
+
+.marquee p {
+  display: inline-block;
+  padding-left: 100%;
+  animation: scroll-left 15s linear infinite;
+}
+
+@keyframes scroll-left {
+  0%   { transform: translateX(0%); }
+  100% { transform: translateX(-100%); }
+}
+
+
   </style>
 </head>
 <body>
-  <div class="container">
-    <button id="connectButton">Connect Wallet</button>
-    <div id="walletAddress"></div>
 
-    <div id="timer">0:30</div>
-    <img id="coin-img" src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Gold_coin_icon.png/600px-Gold_coin_icon.png" alt="STT Coin" />
-    <h2 style="margin-top: 20px;">Earn STT</h2>
-    <p>Tap the button as fast as you can!</p>
-    <button id="tapButton">TAP!</button>
-    <div id="result"></div>
-    <div class="footer">STT Test Game © 2025</div>
+  <header>TAP GAME BY ONCHAIN NIKA</header>
+  <div class="slogan">You’ve got 30 seconds. If you’re the best — the leaderboard won’t lie.</div>
+
+  <div class="leaderboard">
+    <h2>LEADERBOARD</h2>
+    <ol id="leaderboardList"></ol>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <div class="game">
+    <div id="walletAddress">Not connected</div>
+    <button id="connectWallet">Connect Wallet</button>
+    <input type="text" id="playerName" placeholder="Enter your name" maxlength="12"/>
+    <div class="timer" id="timer">0:30</div>
+    <button id="tapButton">TAP!</button>
+    <div id="result"></div>
+  </div>
+
+  <div class="mascot">
+    <img src="girl-mascot.png" alt="Mascot"/>
+  </div>
+
   <script>
-    let provider, signer, contract, userWalletAddress;
-    const contractAddress = '0xc26c366eecb168d3e292d7f610332cff8299396b';
+  document.addEventListener('DOMContentLoaded', () => {
+    const contractAddress = "0xc26c366eecb168d3e292d7f610332cff8299396b";
     const contractABI = [
       "function startGame() external",
       "function submitTaps(uint256 count) external",
       "function getTaps(address player) view returns (uint256)"
     ];
 
-    document.getElementById('connectButton').addEventListener('click', async () => {
+    let provider, signer, contract, userWalletAddress;
+    let timeLeft = 30;
+    let tapCount = 0;
+    let timerStarted = false;
+    let interval;
+
+    const connectBtn = document.getElementById('connectWallet');
+    const walletDisplay = document.getElementById('walletAddress');
+    const tapBtn = document.getElementById('tapButton');
+    const timerEl = document.getElementById('timer');
+    const resultEl = document.getElementById('result');
+    const playerInput = document.getElementById('playerName');
+    const leaderboardList = document.getElementById('leaderboardList');
+    const muteBtn = document.getElementById('muteBtn');
+    const music = document.getElementById('bgMusic');
+    const leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+
+    function updateTimer() {
+      timerEl.textContent = `0:${timeLeft < 10 ? '0' : ''}${timeLeft}`;
+    }
+
+    async function connectWallet() {
       if (window.ethereum) {
-        await window.ethereum.request({ method: 'eth_requestAccounts' });
         provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
         signer = provider.getSigner();
         userWalletAddress = await signer.getAddress();
         contract = new ethers.Contract(contractAddress, contractABI, signer);
-        document.getElementById('walletAddress').innerText = `Connected: ${userWalletAddress}`;
-        document.getElementById('connectButton').style.display = 'none';
+        walletDisplay.textContent = `Connected: ${userWalletAddress.slice(0,6)}...${userWalletAddress.slice(-4)}`;
+        connectBtn.style.display = 'none';
+
+        try {
+          const tx = await contract.startGame();
+          await tx.wait();
+          tapBtn.style.display = 'inline-block';
+          resultEl.textContent = 'Now tap to begin!';
+        } catch (e) {
+          alert("startGame() failed: " + e.message);
+        }
       } else {
-        alert('Install MetaMask');
+        alert("Please install MetaMask!");
+      }
+    }
+
+    connectBtn.addEventListener('click', async () => {
+      await connectWallet(); 
+      if (music && music.paused) {
+        try {
+          await music.play(); 
+        } catch (err) {
+          console.warn("Автовоспроизведение заблокировано:", err);
+        }
       }
     });
 
-    // Game logic
-    let timeLeft = 30;
-    let tapCount = 0;
-    let countdown;
-    let gameStarted = false;
-
-    const timerElement = document.getElementById('timer');
-    const resultElement = document.getElementById('result');
-    const tapButton = document.getElementById('tapButton');
-    const coinImg = document.getElementById('coin-img');
-
-    async function startGameTimer() {
-      try {
-        const tx = await contract.startGame();
-        await tx.wait();
-      } catch (e) {
-        alert("startGame() failed: " + e.message);
-        return;
+    tapBtn.addEventListener('click', async () => {
+      if (!timerStarted) {
+        timerStarted = true;
+        interval = setInterval(() => {
+          timeLeft--;
+          updateTimer();
+          if (timeLeft <= 0) {
+            clearInterval(interval);
+            tapBtn.disabled = true;
+            endGame();
+          }
+        }, 1000);
       }
+      if (timeLeft > 0) tapCount++;
+    });
 
-      countdown = setInterval(() => {
-        timeLeft--;
-        timerElement.innerText = `0:${timeLeft < 10 ? '0' : ''}${timeLeft}`;
-        if (timeLeft <= 0) {
-          clearInterval(countdown);
-          tapButton.disabled = true;
-          submitFinalTaps();
-        }
-      }, 1000);
-    }
-
-    async function submitFinalTaps() {
+    async function endGame() {
       try {
         const tx = await contract.submitTaps(tapCount);
         await tx.wait();
         const finalTaps = await contract.getTaps(userWalletAddress);
-        resultElement.innerText = `You tapped ${finalTaps} times! 👏`;
-        tapButton.innerText = "Done";
+        resultEl.textContent = `You tapped ${finalTaps} times! 👏`;
+        saveScore(playerInput.value.trim(), parseInt(finalTaps));
+        renderLeaderboard();
       } catch (e) {
-        resultElement.innerText = "Error submitting taps: " + e.message;
+        resultEl.textContent = "Error submitting taps: " + e.message;
       }
     }
 
-    tapButton.addEventListener('click', async () => {
-      if (!gameStarted) {
-        gameStarted = true;
-        await startGameTimer();
+    function saveScore(name, score) {
+      const existing = leaderboard.find(p => p.name === name);
+      if (existing) {
+        if (score > existing.score) existing.score = score;
+      } else {
+        leaderboard.push({ name, score });
       }
+      leaderboard.sort((a, b) => b.score - a.score);
+      leaderboard.splice(3);
+      localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+    }
 
-      if (timeLeft > 0) {
-        tapCount++;
-        coinImg.style.transform = 'scale(1.1)';
-        setTimeout(() => {
-          coinImg.style.transform = 'scale(1)';
-        }, 100);
+    function renderLeaderboard() {
+      leaderboardList.innerHTML = '';
+      leaderboard.forEach(player => {
+        const li = document.createElement('li');
+        li.textContent = `${player.name} - ${player.score}`;
+        leaderboardList.appendChild(li);
+      });
+    }
+
+    muteBtn.addEventListener('click', () => {
+      if (music.paused) {
+        music.play();
+        muteBtn.textContent = '🔊';
+      } else {
+        music.pause();
+        muteBtn.textContent = '🔇';
       }
     });
-  </script>
+
+    updateTimer();
+    renderLeaderboard();
+  });
+</script>
+
+  <audio id="bgMusic" src="bg-music.mp3" loop></audio>
+  <button id="muteBtn" title="Toggle Music">🔊</button>
+  <div class="marquee">
+  <p>Stay with Somnia &nbsp; ✦ &nbsp; Stay with Somnia &nbsp; ✦ &nbsp; Stay with Somnia &nbsp; ✦ &nbsp; Stay with Somnia &nbsp; ✦ &nbsp; Stay with Somnia &nbsp; ✦ &nbsp; Stay with Somnia &nbsp; ✦ &nbsp; Stay with Somnia </p>
+</div>
 </body>
 </html>
